@@ -26,7 +26,7 @@ for E in range(2, L + 1):
         break
 
 print(E)
-
+D = 0
 for D in range(2, L + 1):
     if E * D % L == 1:
         break
@@ -34,3 +34,18 @@ for D in range(2, L + 1):
 print(D)
 print(E, N)
 print(D, N)
+
+
+def jiami(mingwen):
+    return pow(mingwen, E) % N
+
+
+def jiemi(miwen):
+    return pow(miwen, D) % N
+
+
+print(jiami(123))
+print(jiemi(jiami(123)))
+
+print(jiemi(123))
+print(jiami(jiemi(123)))
