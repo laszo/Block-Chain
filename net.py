@@ -1,5 +1,7 @@
 from enum import Enum
 
+from block import BlockChain
+
 
 class EnumMsgType(Enum):
     NEW_BLK = 1
@@ -31,8 +33,9 @@ def query_nodes():
     pass
 
 
-def msg_handler():
-    pass
+def msg_handler(msg, data=None):
+    if msg == EnumMsgType.NEW_BLK:
+        BlockChain.add_block(data)
 
 
 def send_msg():
@@ -40,4 +43,8 @@ def send_msg():
 
 
 def listern():
-    pass
+    # todo 使用异步IO框架，监听网络消息，并处理
+    msg = 0
+    while True:
+        msg_handler(msg)
+        break

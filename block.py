@@ -4,8 +4,6 @@ import threading
 
 from datetime import datetime
 
-from net import broadcast_block
-
 
 def calculate_hash(index, pre_hash, timestamp, data):
     thestring = str(index) + pre_hash + str(timestamp) + json.dumps(data)
@@ -29,9 +27,13 @@ class Block(object):
     def read_from_disk(self, disk_data):
         self.data = disk_data
 
+    def __str__(self):
+        return 'index: %d, time: %s, pre_hash: %s, hash: %s' % (
+            self.index, datetime.fromtimestamp(self.timestamp), self.pre_hash, self.hash)
+
 
 def verify_block(blk):
-    if blk is isinstance(Block):
+    if isinstance(blk, Block):
         return blk.hash == calculate_hash(blk.index, blk.pre_hash, blk.timestamp, blk.data)
     return False
 
@@ -54,21 +56,29 @@ class _BlockChain(object):
         """
         1. 从配置文件配置的数据目录中，加载现有的区块链数据，校验并加载到内存里面
         """
-        self.chain = []
+        self._chain = []
+        self._load_data()
         pass
+
+    def _load_data(self):
+        self._chain.append(Block(0, '', ''))
 
     def add_block(self, blk):
         if verify_block(blk):
-            if blk.index == len(self.chain):
-                blk.pre_hash = self.chain[-1].hash
-                blk.refresh_hash()
-                self.chain.append(blk)
-                broadcast_block(blk)
-                return True
+            blk.index = len(self._chain)
+            blk.pre_hash = self._chain[-1].hash
+            blk.refresh_hash()
+            self._chain.append(blk)
+
+            return True
         return False
+
+    def query_all(self):
+        return self._chain
+
+    def get_block_by_index(self, index):
+        if len(self._chain) > index:
+            return self._chain[index]
 
 
 BlockChain = _BlockChain.process_instance()
-
-
-
