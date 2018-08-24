@@ -1,8 +1,9 @@
 import hashlib
 import json
 import threading
-
 from datetime import datetime
+
+from trans import make_trans
 
 
 def calculate_hash(index, pre_hash, timestamp, data):
@@ -17,6 +18,10 @@ class Block(object):
         self.pre_hash = pre_hash
         self.data = data
         self.hash = calculate_hash(index, pre_hash, self.timestamp, data)  # 在这里就计算hash意味着区块一经创建就不能更改
+        self.nonce = 0
+
+    def get_pow_header(self):
+        return '%d%d%s' % (self.index, self.timestamp, self.pre_hash)
 
     def refresh_hash(self):
         self.hash = calculate_hash(self.index, self.pre_hash, self.timestamp, self.data)
@@ -28,8 +33,17 @@ class Block(object):
         self.data = disk_data
 
     def __str__(self):
-        return 'index: %d, time: %s, pre_hash: %s, hash: %s' % (
-            self.index, datetime.fromtimestamp(self.timestamp), self.pre_hash, self.hash)
+        return 'index: %d, time: %s, nonce: %d' % (
+            self.index, datetime.fromtimestamp(self.timestamp), self.nonce)
+
+
+def create_genesis_block():
+    data = make_trans('myaddress', 'from miner', 50)
+    gene_blk = Block(0, '00000000000000', data)
+    gene_blk.nonce = 2083236893  # 2083236893
+    gene_blk.refresh_hash()
+    print(gene_blk)
+    return gene_blk
 
 
 def verify_block(blk):
@@ -61,7 +75,9 @@ class _BlockChain(object):
         pass
 
     def _load_data(self):
-        self._chain.append(Block(0, '', ''))
+        # self._chain.append(Block(0, '', ''))
+        if len(self._chain) == 0:
+            self._chain.append(create_genesis_block())
 
     def add_block(self, blk):
         if verify_block(blk):
@@ -79,6 +95,9 @@ class _BlockChain(object):
     def get_block_by_index(self, index):
         if len(self._chain) > index:
             return self._chain[index]
+
+    def get_last_block(self):
+        return self._chain[-1]
 
 
 BlockChain = _BlockChain.process_instance()
